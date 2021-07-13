@@ -1,0 +1,116 @@
+------------------------------------------
+|   Data Pipeline on the Command Line:   |
+------------------------------------------
+
+Python on the Command Line:
+============================
+
+Documentation:
+    man python
+    >>>
+    ...
+    -V , --version
+        Prints the Python version number of the executable and exits.
+
+Native vs. Anaconda.
+    Run which python
+    /usr/bin/python = native Python
+    /anaconda3/bin/python = Anaconda
+
+To activate the python console, type: python (or python3... you know this stuff), to exit, type: exit()
+
+Python script execution on the command line:
+Method 1:
+    + Create a .py file using a text editor on the command line (e.g. nano, Vim, Emacs)
+Method 2:
+    + Create a .py file by echo-ing the python syntax into a .py file, instantiating the file in the same step.
+        echo "print('hello world')" > hello_world.py
+    + Sanity Check:
+        cat hello_world.py
+    + Execution:
+        python hello_world.py
+
+
+PIP:
+====
+
+Options:
++ -h --help: Documentation
++ --version: Version
++ pip install --upgrade pip: Upgrade pip (or any other package) (separate with space for multiple packages)
++ pip list: Display installed packages in environment
++ pip install package_name: Install single package (separate with space for multiple packages)
++ pip install package_name==0.19.2: Install specific version
+
+
+Data job automation with cron:
+==============================
+
+What is a scheduler?
++ Scheduler runs jobs on a pre-determined schedule
++ Commercial schedulers: Airflow, Luigi, Rundeck, etc.
++ cron scheduler is:
+    + simple
+    + free
+    + customizable
+    + purely command-line
+    + native to MacOS and Linux
+
+What is cron?
+Cron:
++ is a time-based job-scheduler
++ comes pre-installed in MacOS, Unix
++ can be installed in Windows via Cygwin or replaced with Win Task Schedulers
++ is used to automate jobs like system maintenance, bash scripts, Python jobs, etc.
+
+What is crontab?
+Crontab is a central file to keep track of cron jobs.
+    crontab -l
+Documentation:
+    man crontab
+
+Add a job to crontab:
+Method 1: Modify crontab using a text editor (eg. nano, Vim, Emacs)
+Method 2: Echo the scheduler command into crontab:
+    echo "* * * * * python create_model.py" | crontab
+    crontab -l
+
+Learning to time a cron job
+The most frequent schedule for a cron jobs is one minute.
+Breaking down the time component for a cron job:
+
+.------------ minute (0 - 59)
+| .---------- hour (0 - 23)
+| | .-------- day of month (1 - 31)
+| | | .------ month (1 - 12) OR jan, feb, mar, apr,...
+| | | | .---- day of week (0 - 6) (Sunday=0 or 7) OR sun, mon, tue, wed ...
+| | | | |
+* * * * * command to be executed
+
+Example:
+* * * * * python create_model.py
+
+Interpretation:
++ Run every minute, of every hour, or every day, of every month, and of every day of the week
++ In short, run every minute.
+
+More info:
+    https://crontab.guru
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

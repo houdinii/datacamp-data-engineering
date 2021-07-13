@@ -1,9 +1,0 @@
-Data Processing In Shell (AKA Intermediate Shell)-
-
-Downloading Data Using curl:
-
-What is curl?
-    + Short for Client for URLs
-    + Is a Unix command line tool
-    + Transfers data to and from a server
-    + Is used to download data from HTTP(S) sites and FTP servers

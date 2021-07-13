@@ -1,0 +1,191 @@
+Data Processing In Shell (AKA Intermediate Shell)-
+
+Downloading Data Using curl:
+============================
+
+What is curl?
+    + Short for Client for URLs
+    + Is a Unix command line tool
+    + Transfers data to and from a server
+    + Is used to download data from HTTP(S) sites and FTP servers
+
+Checking curl installation:
+    man curl
+If curl has not been installed you will see:
+    curl command not found
+
+Learning curl Syntax:
+Basic curl syntax:
+    curl [options flag] [URL]
+URL is required.
+curl also supports HTTP, HTTPS, FTP, and SFTP
+For a full list of options:
+    curl --help
+
+Downloading a Single File:
+Example:
+
+A single file is stored at:
+    https://websitename.com/datafilename.txt
+Use the optional flag -O to save the file with it's original name
+    curl -O https://websitename.com/datafilename.txt
+To rename the file, use the lower case -o + new file name
+    curl -o renameddatafilename.txt https://websitename.com/datafilename.txt
+
+Downloading Multiple Files using Wildcards:
+Often, a server will host multiple files with similar names:
+    + https://websitename.com/datafilename001.txt
+    + https://websitename.com/datafilename002.txt
+    + https://websitename.com/datafilename003.txt
+    + ...
+    + https://websitename.com/datafilename100.txt
+
+Using Wildcards (*):
+Download every file hosted on https://websitename.com/ that starts with datafilename and ends in .txt:
+    curl -O https://websitename.com/datafilename*.txt
+
+Downloading Multiple Files using Globbing Parser:
+
+Using Globbing Parser
+The following will download every file sequentially starting with datafilename001.txt and ending with datafilename100.txt
+    curl -O https://websitename.com/datafilename[001-100].txt
+
+The following will download every Nth file (eg, name010, name020, name030)
+    curl -O https://websitename.com/datafile[001-100:10].txt
+
+Preemptive Troubleshooting
+curl has two particularly useful option flags in case of timeouts during download:
+    + -L Redirects the HTTP URL if a 300 error code occurs.
+    + -C Resumes a previous file transfer if it times out before completion.
+    + -o Renames output
+    Putting everything together:
+        curl -L -O -C https://websitename.com/datafilename[001-100].txt
+    + All option flags come before the URL
+    + Order of the flags does not matter (e.g. -L -C -O is fine)
+
+
+Downloading Data Using Wget:
+============================
+
+What is Wget?
+Wget:
+    + Derives its name from World Wide Web and get
+    + Native to linux but compatible for all operating systems
+    + Used to download data from HTTP(S) and FTP
+    + Better than curl at downloading multiple files recursively.
+
+Checking Wget Installation:
+Check if Wget is installed correctly with:
+    which wget
+If it is installed, this will print the location of where Wget is installed:
+    /usr/local/bin/wget
+If Wget has not been installed, there will be no output.
+
+To install, sudo apt-get install wget
+
+Learning Wget Syntax:
+Basic Wget syntax:
+    wget [option flags] [URL]
+URL is required.
+Wget also supports HTTP, HTTPS, FTP, SFTP
+For full list of options flags, see:
+    wget --help
+
+Downloading a single file:
+Option flags unique to Wget:
+    + -b: Go to background immediately after startup
+    + -q: Turn off the Wget output (Quiet Mode)
+    + -c: Resume broken download (i.e. continue getting a partially-downloaded file.)
+    + Example: wget -bqc https://websitename.com/datafilename.txt
+        + Output: Continuing in background, pid 12345.
+
+
+Advanced downloading using Wget:
+================================
+
+Multiple file downloading with Wget:
+Save a list of file locations in a text file.
+    cat url_list.txt
+
+    https://websitename.com/datafilename001.txt
+    https://websitename.com/datafilename002.txt
+    https://websitename.com/datafilename003.txt
+    ...
+
+Download from the URL locations stored within the file url_list.txt using -i.
+    wget -i url_list.txt
+
+Setting download constraints for large files:
+Set upper download bandwidth limit (by default in bytes per second) with --limit-rate.
+Syntax:
+    wget --limit-rate={rate}k {file_location}
+Example:
+    wget --limit-rate=200k -i url_list.txt
+
+Setting download constraints for small files:
+Set a mandatory pause time (in seconds_ between file downloads with wait.
+Syntax:
+    wget --wait={seconds} {file_location}
+Example:
+    wget --wait=2.5 -i url_list.txt
+
+curl versus Wget:
+=================
+
+curl advantages:
+    - Can be used for downloading and uploading files from 20+ protocols
+    - Easier to install across all OSes
+
+Wget advantages:
+    - Has many built-in functionalities for handling multiple file downloads.
+    - Can handle various file formats for download (e.g. file directory, HTML page)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

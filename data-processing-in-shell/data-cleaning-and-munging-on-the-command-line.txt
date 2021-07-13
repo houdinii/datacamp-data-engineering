@@ -1,0 +1,182 @@
+--------------------------------------------------
+| Data Cleaning and Munging on the Command Line: |
+--------------------------------------------------
+
+Getting Started With csvkit:
+============================
+
+What is csvkit?
+csvkit:
+- is a suite of command-line tools
+- is developed in Python by Wireservice
+- offers data processing and cleaning capabilities on CSV files
+- has data conversion, processing, and cleaning capabilities that rival Python, R, and SQL
+
+How do you install csvkit?
+Install csvkit using Python package manager pip:
+    pip install csvkit
+Upgrade csvkit with:
+    pip install --upgrade csvkit
+
+
+in2csv: converting files to CSV
+===============================
+
+Command-line documentation:
+    in2csv --help/-h
+
+Syntax:
+    in2csv SpotifyData.xlsx > SpotifyData.csv
+
+in2csv SpotifyData.xlsx prints the first sheet in Excel to console and DOES NOT SAVE
+> SpotifyData.csv redirects the output and saves it as a new file, SpotifyData.csv.
+
+Use --names or -n option to print all sheet names.
+Use --sheet option followed by the sheet (in quotes) to specify sheet to be converted.
+
+in2csv does not print logs to console so you need to do an ls 'sanity check'
+
+
+csvlook: Data Preview on the Command Line
+=========================================
+
+csvlook: renders a CSV to the command line in a Markdown-compatible, fixed-width format.
+
+Documentation:
+    csvlook -h
+
+Syntax:
+    svlook Spotify_Popularity.csv
+
+Output:
+| track_id              | popularity |
+|-----------------------|------------|
+|asdfea561aef516afa6sdfe|          7 |
+|faefaf561aef516afa6sdfe|          7 |
+|561dae4g5aef516afa6sdfe|          7 |
+|sefea56a1aef516afa6sdfe|          7 |
+|df4fea561aef516afa6sdfe|          7 |
+
+
+csvstat: Descriptive Stats on CSV Data Files
+============================================
+
+Documentation:
+    csvstat -h
+
+Syntax:
+    csvstat Spotify_Popularity.csv
+
+Output:
+    1. "track_id"
+
+        Type of data:           Text
+        Contains null values:   False
+        Unique values:          24
+        Longest value:          22 characters
+        Most common values:     asdfea561aef516afa6sdfe (1x)
+                                sefea56a1aef516afa6sdfe (1x)
+
+Filtering Data Using csvkit:
+============================
+
+What does it mean to filter data?
+We can create a subset of the original data file by:
+    1. Filtering the data by column
+    2. Filtering the data by row
+csvcut: filters data using column name or position.
+csvgrep: filters data by row value through exact match, pattern matching, or even regex.
+
+
+csvcut: Filtering Data By Column:
+=================================
+
+Documentation:
+    csvcut -h
+
+csvcut --names/-n option prints all column names in input file.
+
+-c option: -c {col_nums separated by comma or col_names IN QUOTES separated by comma} {filename} - returns column indicated
+
+
+csvgrep: Filtering Data by Row Value:
+=====================================
+
+csvgrep:
++ Filters by row using exact match or regex fuzzy matching
++ must be paired with one of these options:
+    + -m: followed by the exact row value to filter WITHOUT QUOTES
+    + -r: followed by a regex pattern
+    + -f: followed by the path to a file
+
+Documentation:
+    csvgrep -h
+
+Example:
+Find in Spotify_Popularity.csv where track_id = asdfea561aef516afa6sdfe
+
+By Column Name:
+    csvgrep -c "track_id" -m asdfea561aef516afa6sdfe Spotify_Popularity.csv
+
+By Column Number:
+    csvgrep -c 1 -m asdfea561aef516afa6sdfe Spotify_Popularity.csv
+
+
+Stacking data and chaining commands with csvkit:
+================================================
+
+csvstack: Stacking Multiple CSV Files
+Stacks up the ros from two or more CSV files.
+
+Documentation:
++ csvstack -h
+
+Stack two similar files (same columns), Spotify_Rank6.csv and Spotify_Rank7.csv into one file.
+
+Syntax:
+    csvstack Spotify_Rank6.csv Spotify_Rank7.csv > Spotify_AllRanks.csv
+                     Typically Followed By:
+                  csvlook Spotify_AllRanks.csv
+
+    -g GROUPS - comma sepparated list to use as grouping factors (label for each file)
+    -n GROUP_NAME - A name for the grouping column
+
+Example:
+    csvstack -g "Rank6", "Rank7" Spotify_Rank6.csv Spotify_Rank7.csv > Spotify_AllRanks.csv
+
+
+Chaining Command-Line Commands:
+===============================
+
+;  - links commands together and runs sequentially
+    csvlook SpotifyData_All.csv; csvstat SpotifyData_All.csv
+
+&& - links commands together, but only runs the 2nd command if the 1st succeeds
+     csvlook SpotifyData_All.csv && csvstat SpotifyData_All.csv
+
+>  - re-direts the output from the 1st command to the location indicated by the 2nd command.
+     in2csv SpotifyData.xlsx > SpotifyData.csv
+
+|  - uses the output of the 1st command as input to the 2nd
+        Example: Output of the 1st command as input to the 2nd
+            csvcut -c "track_id","danceability" Spotify_MusicAttributes.csv
+
+        A Better Way: Re-format csvcut's output by piping the output as input to csvlook:
+            csvcut -c "track_id","danceability" Spotify_Popularity.csv | csvlook
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -28,6 +28,8 @@ Commands:
 + head/tail - head/tail {file} - prints first 10 lines of file.
     + -n XX number of lines to display
 
++ which - which {command} - Prints installation location of command (or nothing if it doesn't exist)
+
 + man - (Man)ual - Disply help text
 
 + cut - Remove sections from each line of files (select colomns from a file instead of row like head/tail)
