@@ -1,0 +1,145 @@
+ /-------------------------------\
+|    Intermediate Unit Testing    |
+ \-------------------------------/
+
+
+
+Mastering The Assert Statement:
+- Syntax:
+    assert boolean_expression, message
+- Example:
+    assert 1 == 2, "One is not equal to two!"
+- Output:
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    AssertionError: One is not equal to two!
+- Another Example:
+    assert 2 == 2, "This will not be printed since assertion passes"
+- Output:
+
+
+
+Adding a message to a unit test:
+    def test_for_missing_area_with_message():
+        actual = row_to_list("\t293,410\n")
+        expected = None
+        message = (f"row_to_list('\t293,410\n') returned ${actual} instead of {expected}")
+        assert actual is expected, message
+
+
+Recommendations:
+- Include a message with assert statements.
+- Print values of any variable that is relevant to debugging.
+
+Beware Of Float Return Values!!
+- assert 0.1 + 0.1 + 0.1 == 0.3  RETURNS FALSE!
+- instead use pytest.approx() to wrap expected return value:
+        assert 0.1 + 0.1 + 0.1 == pytest.approx(0.3)
+
+        assert np.array([0.1 + 0.1, 0.1 + 0.1 + 0.1]) == pytest.approx(np.array([0.2, 0.3]))
+
+
+Multiple Assertions In One Unit Test:
+
+    def test_on_string_with_one_comma():
+        return_value = convert_to_int("2,081")
+        assert isinstance(return_value, int)
+        assert return_value==2081
+        # Test will pass only if both assertions pass.
+
+
+Testing For Exceptions Instead Of Return Values:
+------------------------------------------------
+Say we have a function that returns a two-tuple containing the training and testing array:
+
+    import numpy as np
+    example_argument = np.array([[2081, 314942],
+                                 [1059, 186606],
+                                 [1148, 206186],
+                                 ]
+                                )
+    split_into_training_and_testing_sets(example_argument)
+
+Returns:
+
+    (array([[1148, 206186],
+            [2081, 314942],
+            ]
+           ),
+     array([[1059, 186606]])
+     )
+
+This function expects the argument array to have rows and columns, that is, the argument array must be two dimensional.
+Otherwise, splitting by rows is undefined. So if we pass a one dimensional array to this function, it should not return
+anything, but rather raise a ValueError, which is a specific type of exception.
+
+Exception Example:
+------------------
+
+    import numpy as np
+    example_argument = np.array([2081, 314942, 1059, 186606, 1148, 206186])    # one dimensional
+    split_into_training_and_testing_sets(example_argument)
+
+    >>> ValueError: Argument data array must be two dimensional. Got 1 dimensional array instead!
+
+Unit Testing Exceptions:
+------------------------
+GOAL: Test if split_into_training_and_testing_set() raises ValueError with one dimensional argument.
+
+    def test_valueerror_on_one_dimmensional_argument():
+        example_argument = np.array([2081, 314942, 1059, 186606, 1148, 206186])
+        with pytest.raises(ValueError):
+            split_into_training_and_testing_sets(example_argument)
+
++ If function raises expected ValueError, test will pass.
++ If function si buggy and does not raise ValueError, test will fail.
+
+
+Testing The Error Message:
+--------------------------
+
+    def test_valueerror_on_one_dimmensional_argument():
+        example_argument = np.array([2081, 314942, 1059, 186606, 1148, 206186])
+        with pytest.raises(ValueError):
+            split_into_training_and_testing_sets(example_argument)
+        # Check if ValueError contains correct message
+        assert exception_info.match("Argument data array must be two dimensional. Got 1 dimensional array instead!")
+
++ exception_info stores the ValueError.
++ exception_info.match(expected_msg) checks if expected_msg is present in the actual error message.
+
+
+The Well Tested Function
+========================
+------------------------
+
+A well tested function tests for these argument types:
++ Bad arguments
++ Special arguments
++ Normal arguments
+
+Type I: Bad Arguments (Array With Only One Row):
++ When passed bad arguments, function raises an exception.
+
+Example: np.array([[845.0, 31036.0]])
+
+Type II: Special Arguments
++ Boundary Values.
++ For some argument values, function uses special logic.
+
+---------------------------------------------------------------------------------------------
+| Argument            | Type     | Num Rows (Training) | Num Rows (Testing)    | Exceptions |
+---------------------------------------------------------------------------------------------
+| One Dimensional     | Bad      | -                   | -                     | ValueError |
+| Contains 1 Row      | Bad      | -                   | -                     | ValueError |
+| Contains 2 Rows     | Special  | int(0.75 * 2) = 1   | 2 - int(0.75 * 2) = 1 | -          |
+| Contains 3 Rows     | Special  | int(0.75 * 3) = 2   | 3 - int(0.75 * 3) = 1 | -          |
+| Contains 4 Rows     | Special  | int(0.50 * 4) = 2   | 4 - int(0.50 * 4) = 2 | -          | <- special 50/50 case
+| Contains 5 Rows     | Special  | int(0.75 * 5) = 3   | 5 - int(0.75 * 5) = 2 | -          |
+| Contains 6 Rows     | Normal   | int(0.75 * 6) = 4   | 6 - int(0.75 * 6) = 2 | -          |
+| Contains 8 Rows     | Normal   | int(0.75 * 8) = 6   | 8 - int(0.75 * 6) = 2 | -          |
+---------------------------------------------------------------------------------------------
+
+Caveat
++ Not all functions have bad or special arguments.
+  + In this case, simply ignore these class of arguments.

@@ -1,0 +1,569 @@
+Testing Models, Plots, and Much More
+====================================
+
+In this chapter, You will pick up advanced unit testing skills like setup, teardown and mocking. You will also learn
+how to write sanity tests for your data science models and how to test matplotlib plots. By the end of this chapter,
+you will be ready to test real world data science projects!
+
+
+Beyond Assertion: Setup And Teardown:
+-------------------------------------
+
+The chapter example will be using a function preprocess(), which takes in paths to a raw data file and a clean data
+file as arguments. Let's say that the function and raw data file looks like this:
+
+    def preprocess(raw_data_file_path,
+                   clean_data_file_path,
+                   ):
+        ...
+
+
+    1,801    201,411
+    1,767565,112        # Dirty row, no tab
+    2,002    333,209
+    1990    782,911     # Dirty row, no comma
+    1,285    389129     # Dirty row, no comma
+
+    Output:
+    [[1801, 201411], [2002, 333209]]
+
+
+The function first applies row_to_list() on the rows. The second row has no tab separator, so row_to_list() filters it
+out. convert_to_int() is applied next. The fourth and fifth rows are dirty because the area and the price entry are
+missing commas respectively. convert_to_int() filters them out. For the two valid rows, convert_to_int() converts the
+comma separated strings into integers. The result is written to the clean file.
+
+
+Environment Preconditions:
+--------------------------
+preprocess() is different from other functions because it has a precondition to work properly. The precondition is the
+presence of a raw data file in the environment. Another difference is that when we call the function, it modifies the
+environment by creating a clean data file.
+
+
+Testing the preprocessing function:
+-----------------------------------
+We create a test called test_on_raw_data() for this function.
+
+Step 1: Setup:
+We create the raw data file first. This step is called setup, and it is used to bring the environment to a state where
+testing can begin.
+
+    def test_on_raw_data():
+        # Setup: create the raw data file
+        preprocess(raw_data_file_path,
+                   clean_data_file_path,
+                   )
+        with open(clean_data_file_path) as f:
+            lines = f.readlines()
+        # assertions go here
+
+Step 2: Assert:
+Then we call the function, which creates the clean data file. We open that file, read it and assert that it contains
+the expected lines.
+
+        first_line = lines[0]
+        assert first_line == "1801\t201411\n"
+        second_line = lines[1]
+        assert second_line == "2002\t333209\n"
+        # teardown goes here
+
+Step 3: Teardown:
+Afterwards, we need to remove the clean and raw data file so that the next run of the test gets a clean environment.
+This step is called teardown, and it cleans any modification to the environment and brings it back to the initial state.
+        # Code to delete the temp file (and maybe raw file) goes here.
+
+
+The new workflow:
+-----------------
+To summarize, instead of a sequence of assert statements, we have to follow the workflow: setup, assert and teardown.
+
+    Old:   assert       New:    setup --> assert --> teardown
+
+15. Fixture
+In pytest, the setup and teardown is placed outside the test, in a function called a fixture. A fixture is a function
+which has the pytest.fixture decorator. The first section is the setup. Then the function returns the data that the
+test needs. The test can access this data by calling the fixture passed as an argument. But instead of using the return
+keyword, the fixture function actually uses the yield keyword instead. The next section is the teardown. This section
+runs only when the test has finished executing.
+
+    import pytest
+
+    @pytest.fixture
+    def my_fixture():
+        # Do setup here
+        yield data          # Use yield instead of return
+        # Do teardown here
+
+    def test_something(my_fixture):
+        ...
+        data = my_fixture
+        ...
+
+Let's see an example of how this works for the test test_on_raw_data():
+
+    FIXTURE
+    -------
+    import os
+    import pytest
+
+    @pytest.fixture
+    def raw_and_clean_data_file():
+        raw_data_file_path = "raw.txt"
+        clean_data_file_path = "clean.txt"
+        with open(raw_data_file_path, "w") as f:
+            f.write("1,801\t201,411\n",
+            "1,767565,112\n",
+            "2,002\t333,209\n",
+            "1990\t782,911\n",
+            "1,285\t389129\n"
+            )
+        yield raw_data_file_path, clean_data_file_path
+        os.remove(raw_data_file_path)
+        os.remove(clean_data_file_path)
+
+    def test_on_raw_data(raw_and_clean_data_file):
+        raw_path, clean_path = raw_and_clean_data_file
+        preprocess(raw_path, clean_path)
+        with open(clean_data_file_path) as f:
+            lines = f.readlines()
+        first_line = lines[0]
+        assert first_line == "1801\t201411\n"
+        second_line = lines[1]
+        assert second_line == "2002\t333209\n"
+
+We create a fixture called raw_and_clean_data_file(). In setup, we create the paths to the raw and clean data file.
+Next, we write the raw data to the raw data file. Finally, we yield the paths as a tuple. The test calls the fixture
+and gets the paths required to call the preprocess() function. Then we proceed to the assert statements. In the
+teardown section, we remove both raw and clean data file using the os.remove() function.
+
+
+The built-in tmpdir fixture:
+----------------------------
+There is a built-in pytest fixture called tmpdir, which is useful when dealing with files. This fixture creates a
+temporary directory during setup and deletes the temporary directory during teardown. We can pass this fixture as an
+argument to our fixture. This is called fixture chaining, which results in the setup of tmpdir to be called first,
+followed by the setup of our fixture. When the test finishes, the teardown of our fixture is called first, followed by
+the teardown of tmpdir. The tmpdir argument supports all os.path commands such as join. We use the join function of
+tmpdir to create the raw and clean data file inside the temporary directory. The rest of the setup looks identical. The
+awesome thing is: we can omit the teardown code in our fixture entirely, because the teardown of tmpdir will delete all
+files in the temporary directory when the test ends.
+
+    from pytest import tmpdir
+
+    @pytest.fixture
+    def raw_and_clean_data_file(tmpdir):
+        raw_data_file_path = tmpdir.join("raw.txt")
+        clean_data_file_path = tmpdir.join("clean.txt")
+        ...
+        # Teardown code is not necessary!!!
+
+
+Mocking
+========
+
+Test Result Depends On Dependencies:
+------------------------------------
+Test result should only indicate bugs in:
++ Function under test (i.e. preprocess())
++ NOT dependencies (e.g. row_to_list() or convert_to_int())
+
+In this lesson, we will learn a trick which will allow us to test a function independently of its dependencies. This
+very useful trick is called mocking. To use mocking in pytest, we will need two packages. The first one is pytest-mock
+and we can install it using pip. The second one is a standard library package called unittest.mock.
+
+
+Packages for mocking in pytest:
+-------------------------------
++ pytest-mock: Install using pip install pytest-mock
++ unittest.mock: Python standard library package.
+
+
+The basic idea of mocking is to replace potentially buggy dependencies such as row_to_list() with the object
+unittest.mock.MagicMock(), but only during testing. This replacement is done using a fixture called mocker, and
+calling its patch method right at the beginning of the test test_on_raw_data(), which we wrote in the last lesson.
+
+
+MagicMock() and mocker.patch()
+------------------------------
+Syntax: mocker.patch("<dependancy name with module name>")
+        mocker.patch("data.preprocessing_helpers.row_to_list")
+
+The first argument of the mocker.patch method is the fully qualified name of the dependency including module name, as
+registered by the function under test. preprocess() knows row_to_list() as data.preprocessing_helpers.row_to_list, so
+that's what we will use here. The mocker.patch method returns the MagicMock object which we store in the variable
+row_to_list_mock. During the test, row_to_list_mock can be programmed to behave like a bug-free replacement of
+row_to_list(). We call the bug free version of row_to_list() as row_to_list_bug_free(). Note that this only needs
+to be bug-free in the context of the test, and therefore, can be much simpler than the actual row_to_list() function.
+In the test, we use the following raw data file, which we already saw in the last lesson. The row_to_list_bug_free()
+simply needs to return the correct result for these five rows. Therefore, we create a dictionary containing the correct
+results for these five rows and return the results from the dictionary. Then we set the side_effect attribute of the
+MagicMock() object to the bug-free version.
+
+
+Side effect
+-----------
+We can also set the side_effect attribute by passing side_effect as a keyword argument to mocker.patch. mocker.patch
+treats any keyword argument that it does not recognize as an attribute of the returned MagicMock() object and sets the
+attribute value accordingly.
+
+
+Full Example:
+-------------
+Raw Data:
+    1,801    201,411
+    1,767565,112
+    2,002    333,209
+    1990    782,911
+    1,285    389129
+
+def test_on_raw_data(raw_and_clean_data_file, mocker,):
+    raw_path, clean_path = raw_and_clean_data_file
+    row_to_list_mock = mocker.patch("data.preprocessing_helpers.row_to_list")
+    row_to_list_mock.side_effect = row_to_list_bug_free
+               Can also be written as:
+    row_to_list_mock = mocker.patch("data.preprocessing_helpers.row_to_list", side_effect = row_to_list_bug_free)
+
+def row_to_list_bug_free(row):
+    return_values = {
+        "1,801\t201,411\n": ["1801", "201411"],
+        "1,767565,112\n": None,
+        "2,002\t333,209\n": ["2002", "333209"],
+        "1990\t782,911\n": ["1990", "782911"],
+        "1,285\t389129\n": ["1285", "389129"]
+    }
+    return return_values[row]
+
+
+Checking the arguments:
+-----------------------
+We can also check if preprocess() is calling row_to_list() with the correct arguments. The call_args_list attribute is
+a list of all the arguments that row_to_list_mock was called with, wrapped in a convenience object called call(). This
+convenience object can be imported from unittest.mock, and we import it at the top of the test. In the test, we can
+assert that the call_args_list attribute is the expected list containing the five rows of the raw data file in the
+correct order:
+    call_args_list attribute returns a list of arguments that the mock was called with:
+
+    row_to_list_mock.call_args_list
+    >>>
+    [call("1,801\t201,411\n"),
+     call("1,767565,112\n"),
+     call("2,002\t333,209\n"),
+     call("1990\t782,911\n"),
+     call("1,285\t389129\n")
+    ]
+
+    then we can assert that the attributes going in are correct and bug free.
+
+        assert row_to_list_mock.call_args_list == [
+        call("1,801\t201,411\n"),
+         call("1,767565,112\n"),
+         call("2,002\t333,209\n"),
+         call("1990\t782,911\n"),
+         call("1,285\t389129\n")
+        ]
+
+Dependency buggy, function bug-free, test still passes!
+We have prepared a scenario where row_to_list() contains a bug but preprocess() doesn't. If we run the tests for both
+functions, we see that the some tests for row_to_list() fail, but the test for preprocess() passes. That's exactly the
+behavior we wanted!
+
+
+Testing Models:
+===============
+We have come far in this course and now it's time to slowly put everything together. We are already familiar with the
+functions preprocess(), get_data_as_numpy_array() and split_into_training_and_testing_set(). The raw data file
+containing housing area and prices is in a file called housing_data.txt inside a subdirectory called raw of the top
+level directory data. We clean the raw data using preprocess() and put the file clean_housing_data.txt in the
+subdirectory clean of the data folder.
+
+Next, we can apply get_data_as_numpy_array() on the clean data file to get a NumPy array containing the clean data.
+
+Finally, we can apply split_into_training_and_testing_set() to randomly split this NumPy array row-wise in the ratio
+3:1. Three fourth of the data will be used for training a linear regression model. The rest will be used to test
+the model. All these functions are well tested, thanks to your efforts in the exercises!
+
+
+Splitting Into Training And Testing Sets:
+-----------------------------------------
+
+    from data.preprocessing_helpers import preprocess
+    from features.as_numpy import get_data_as_numpy_array
+    from models.train import (
+        split_into_training_and_testing_sets
+    )
+
+    preprocess("data/raw/housing_data.txt",
+               "data/clean/clean_housing_data.txt")
+
+    data = get_data_as_numpy_array(
+        "data/clean/clean_housing_data.txt"
+        )
+
+    training_set, testing_set = (
+        split_into_training_and_testing_sets(data)
+    )
+
+
+The linear regression model
+----------------------------
+It's time now to train a linear regression model using the function train_model(), which takes the training set as the
+only argument. The training set has areas in the first column and prices in the second column. The linregress()
+function from scipy.stats is used to perform linear regression on the two columns. It returns the slope and intercept
+of the best fit line. It also returns three other quantities related to linear regression, but since we don't need
+them, we simply use the dummy variable underscore three times.
+
+    from scipy.stats import linregress
+
+    def train_model(training_set):
+        slope, intercept, _, _, _ = linregress(training_set[:, 0], training_set[:, 1])
+        return slope, intercept
+
+
+Return values difficult to compute manually
+-------------------------------------------
+The train_model() function is different from the functions that we have tested so far. Since it performs a complicated
+linear regression procedure, we cannot easily predict the best fit line. And if we don't know the expected return
+value, we cannot test the function! This is true for all data science models, be it regression, random forest, support
+vector machine or neural network.
+
+14. Trick 1: Use dataset where return value is known
+The trick is to use an artificial or well-known training set, where it is easy to manually compute the return value.
+In the case of linear regression, one such training dataset is a linear data set. In the test test_on_linear_data(),
+we use such a dataset which follows the equation price equals two times area plus one. Since the data lies in a
+straight line, the best fit line is the same straight line. Therefore, the slope returned by train_model() should
+be 2, while the intercept returned should be 1. We can write assert statements to check that.
+
+    import pytest
+    import numpy as np
+    from models.train import train_model
+
+    def test_on_linear_data():
+        test_argument = np.array([1.0, 3.0],
+                                 [2.0, 5.0],
+                                 [3.0, 7.0],
+                                 ]
+                                )
+
+        expected_slope = 2.0
+        expected_intercept = 1.0
+        slope, intercept = train_model(test_argument)
+        assert slope == pytest.approx(expected_slope)
+        assert intercept == pytest.approx(expected_intercept)
+
+16. Trick 2: Use inequalities
+We can also use inequalities. For example, in the test test_on_positively_correlated_data(), we use a dataset that is
+positively correlated. In this case, we can't predict the best fit line, but we can definitely assert that the best fit
+line has a slope greater than zero. This is an example of a sanity check.
+
+    import numpy as np
+    from models.train import train_model
+
+    def test_on_linear_data():
+        test_argument = np.array([1.0, 4.0], [2.0, 4.0],
+                                 [3.0, 9.0], [4.0, 10.0],
+                                 [5.0, 7.0], [6.0, 13.0],
+                                 ]
+                                )
+
+        slope, intercept = train_model(test_argument)
+        assert slope > 0
+
+18. Recommendations
+We shouldn't leave our model untested just because it is complex. Perform all sorts of sanity checks. This will save
+us lots of debugging effort in the long run.
+
+
+Testing Model Performance:
+--------------------------
+Once the training function has been tested, we use it to find the best fit line for the housing data.
+
+The next step is to test the model using the model_test() function. It takes the testing set as the first argument. It
+also takes the slope and intercept returned by the model, and checks the performance of the model on the testing set.
+It returns a quantity called the r squared, which expresses how well the model fits the testing set. The value of r
+squared usually ranges from 0 to 1. It is 1 when the fit is perfect, it is 0 if there's no fit. It is hard to compute
+r squared in the general case. Therefore, we will have to use the recommendations of this lesson to test this function
+
+def model_set(testing_set, slope, intercept):
+    """Return r^2 of fit"""
+
++ Returns a quantity r^2
++ Indicates how well the model performs on unseen data.
++ Usually, 0 <= r^2 <= 1.
++ r^2 = 1 indicates perfect fit.
++ r^2 = 0 indicates no fit.
++ Complicated to compute r^2 manually.
+
+
+Testing Plots
+=============
+A data-science course without visualizations is like a pizza without cheese. Therefore, in this lesson, we will add
+some cheese by testing visualizations generated by the plotting library matplotlib.
+
+We have a Python package called visualization under the application directory src. The package has a Python module
+called plots.py. The module contains a function called get_plot_for_best_fit_line(), which we are going to test.
+It takes the slope and the intercept of the best fit line as arguments.
+
+Other arguments include x_array and y_array, which hold the housing area and prices data respectively, either from the
+training set or the testing set. The final argument is the plot's title. The function returns a matplotlib figure.
+
+After we have obtained the best fit line on the training set using the train_model() function, we will call the
+plotting function, as shown here. This produces the training plot.
+
+We can also plot the best fit line on the testing set. This produces the testing plot.
+
+data/
+src/
+|--data/
+|--features/
+|--models/
+|--visualization
+|  |-- __init__.py
+|  |-- plots.py
+tests/
+
+plots.py:
+    def get_plot_for_best_fit_line(slope,
+                                   intercept,
+                                   x_array,
+                                   y_array,
+                                   title
+                                   ):
+        """
+        slope: slope of best fit line
+        intercept: intercept of best fit line
+        x_array: array containing housing areas
+        y_array: array containing housing prices
+        title: title of the plot
+
+        Returns: matplotlib.figure.Figure()
+        """
+
+Training / Testing Plot:
+    ...
+    from visualization import get_plot_for_best_fit_line
+
+    preprocess(...)
+    data = get_data_as_numpy_array(...)
+    training_set, testing_set = (split_into_training_and_testing_sets(data))
+    slope, intercept = train_model(training_set)
+    get_plot_for_best_fit_line(slope,
+                               intercept,
+                               training_set[:, 0],
+                               training_set[:, 1],
+                               "Training")
+    get_plot_for_best_fit_line(slope,
+                               intercept,
+                               testing_set[:, 0],
+                               testing_set[:, 1],
+                               "Testing")
+
+Don't test properties individually
+----------------------------------
+The return value of the plotting function is a matplotlib.figure.Figure() object. This object has tons of properties,
+for example, the axes and its configuration and style, the plotted data and its style, annotations and its style etc.
+Due to the sheer number of properties, it is not advisable to test each of them individually. Instead, we will use a
+shortcut using the human eye.
+
+This includes:
++ Axes
+    + Configuration
+    + Style
++ Data
+    + Style
++ Annotations
+    + Style
++ ...
+
+
+Testing strategy for plots
+--------------------------
+The idea involves two steps - a one-time baseline generation and testing.
+
+Step One: One-time baseline generation
+To generate the one-time baseline, we decide on a set of test arguments for the plotting function.
+
+Step Two: One-time baseline generation
+Then we call the plotting function with these test arguments and convert the returned matplotlib.figure.Figure()
+object into a PNG image. We inspect this image manually and verify that it looks as expected. If it does, we store
+this image as a baseline image. If it doesn't, we modify the function until it does.
+
+Step Three: Testing
+The testing step involves generating a PNG image for the test arguments that we decided upon earlier and comparing the
+image with the stored baseline image.
+
+pytest-mpl
+----------
+Since images generated on different operating systems look slightly different, we need to use a pytest plugin called
+pytest-mpl for image comparisons. This library knows how to ignore the operating system related differences and makes
+it easy to generate baseline images. We install it using pip.
+
++ Knows how to ignore OS related differences.
++ Makes it easy to generate baseline images
+
+    pip install pytest-mpl
+
+An example test
+---------------
+To illustrate how this package works, we will write a test called test_plot_for_linear_data(). For this test, we have
+decided on a simple linear data set. Instead of an assert statement, the test returns the matplotlib figure returned
+by the function under test. That's because we will use a marker called pytest.mark.mpl_image_compare, and this will do
+the image comparison and the baseline image generation under the hood.
+
+pytest expects baseline images to be stored in a folder called baseline relative to the test module test_plots.py.
+To generate the baseline image, we run the test with the command line argument --mpl-generate-path and enter the path
+to the baseline folder as argument. This will create the baseline image. Then we open the baseline image and confirm
+that it looks as expected.
+
+    import pytest
+    import numpy as np
+    from visualization import get_plot_for_best_fit_line
+
+    @pytest.mark.mpl_image_compare   # Under the hood baseline generation and comparison
+    def test_plot_for_linear_data():
+        slope = 2.0
+        intercept = 1.0
+        x_array = np.array([1.0, 2.0, 3.0])    # Linear data set
+        y_array = np.array([3.0, 5.0, 7.0])
+        title = "Test plot for linear data"
+        return get_plot_for_best_fit_line(slope, intercept, x_array, y_array, title)
+
+Generating the baseline image:
+    !pytest -k "test_plot_for_linear_data" --mpl-generate-path visualization/baseline
+
+    data/
+    src/
+    |--data/
+    |--features/
+    |--models/
+    |--visualization
+       |-- __init__.py
+       |-- plots.py
+    tests/
+    |--data/
+    |--features/
+    |--models/
+    |--visualization
+       |-- __init__.py
+       |-- test_plots.py    # Test module
+       |-- baseline         # Contains baselines
+           |-- test_plot_for_linear_data.png
+
+Run the test
+------------
+The next time we run the test, we must use the --mpl option with the pytest command. This will make pytest compare
+the baseline image with the actual one. If they are identical, then the test will pass.
+
+    !pytest -k "test_plot_for_linear_data" --mpl
+
+Reading failure reports
+-----------------------
+If they are not identical, the test will fail and pytest will save the baseline image, the actual image and an image
+containing the pixelwise difference to a temporary directory. The paths to these images will be printed in the
+failures section of the test result report, as we see here. Looking at these images helps in debugging the function.
+
+29. Yummy!
+Yummy!
+
+30. Let's test plots!
+Let's practice testing plots in the exercises.

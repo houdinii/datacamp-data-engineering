@@ -1,0 +1,237 @@
+ /-------------------------------------\
+|    Test Organization and Execution    |
+ \-------------------------------------/
+
+ How to Organize a Growing Set of Tests
+ --------------------------------------
+ ======================================
+
+ The Tests Folder Mirrors The Application Folder:
+ ------------------------------------------------
+ + my_module.py  <====> test_my_module.py
+
+src/                                    # All application code lives here
+ |-- data/                              # Package for data preprocessing
+     |-- __init__.py
+     |-- preprocessing_helpers.py       # Contains row_to_list(), convert_to_int()
+ |-- features/                          # Package for feature generation from preprocessed data
+     |-- __init__.py
+     |-- as_numpy.py                    # Contains get_data_as_numpy_array()
+ |-- models/                            # Package for training/testing linear regression model
+     |-- __init__.py
+     |-- train.py                       # Contains split_into_training_and_testing_sets()
+tests/                                  # Test suite: all tests live here
+ |-- data/
+     |-- __init__.py
+     |-- test_preprocessing_helpers.py  # Corresponds to module src/data/preprocessing_helpers.py
+ |-- features/
+     |-- __init__.py
+     |-- test_as_numpy.py
+ |-- models/
+     |-- __init__.py
+     |-- test_train.py
+
+
+Structuring Tests Inside Test Modules:
+--------------------------------------
+Test Module: test_preprocessing_helpers.py
+
+    import pytest
+    from data.preprocessing_helpers import row_to_list, convert_to_list
+
+    def test_on_no_tab_no_missing_value():      # A test for row_to_list()
+        ...
+
+    def test_on_two_tabs_no_missing_value():    # Another test for row_to_list()
+        ...
+
+    ...
+
+    def test_with_no_comma():                   # A test for convert_to_int()
+        ...
+
+    def test_with_one_comma():                  # Another test for convert_to_int()
+        ...
+
+    ...
+
+
+Test Class: Theoretical Structure
+    import pytest
+    from data.preprocessing_helpers import row_to_list, convert_to_list
+
+    class TestRowToList(object):                        # Always put the argument object
+        def test_on_no_tab_no_missing_value(self):      # Always put the argument self
+            ...
+
+        def test_on_two_tabs_no_missing_value(self):    # Always put the argument self
+            ...
+
+    class TestConvertToInt(object):                     # Test class for convert_to_int()
+        def test_with_no_comma(self):                   # A test for convert_to_int()
+            ...
+
+        def test_with_one_comma(self):                  # Another test for convert_to_int()
+            ...
+
+
+Mastering Test Execution
+------------------------
+========================
+
+Running All Tests:
+------------------
+
+tests/
+    /data
+        test_preprocessing_helpers.py
+            /TestRowToList
+                /test_on_normal_argument_1()
+                /test_on_normal_argument_2()
+            /TestConvertToInt
+            ...
+    /features
+        test_as_numpy.py
+        ...
+    /models
+        test_train.py
+        ...
+
+Running All Tests:
+------------------
+
+    cd tests
+    pytest
+
++ Recurses into directory subtree of tests/
+  + Filenames starting with test_ --> test module.
+    + Classnames starting with Test --> test class.
+      + Function names starting with test_ --> unit test.
+
+    pytest -x  <-- Stops after first failure
+    pytest data/test_preprocessing_helpers.py  <-- Runs all tests in a test module
+
+
+Running Only A Particular Test Class:
+-------------------------------------
+Node ID
++ Node ID of a test class: <path to test module>::<test class name>
++ Node ID of a unit test: <path to test module>::<test class name>::<unit test name>
++ Run the test class TestRowToList:
+    pytest data/test_preprocessing_helpers.py::TestRowToList
++ Run the test test_on_one_tab_with_missing_value():
+    pytest data/test_preprocessing_helpers.py::TestRowToList::test_on_one_tab_with_missing_value
+
+
+Running Tests Using Keyword Expressions:
+----------------------------------------
+The -k Options
++ Run the test class TestSplitIntoTrainingAndTestingSets
+    pytest -k "TestSplitIntoTrainingAndTestingSets"
+    pytest -k "TestSplit"
++ Supports Python Logical Operators
+    pytest -k "TestSplit and not test_on_one_row"
+
+
+Expected Failures And Conditional Skipping:
+-------------------------------------------
+xfail: Marking Tests As "Expected To Fail" (shows x instead of . in pytest results)
+    import pytest
+
+    class TestTrainModel(object):
+        @pytest.mark.xfail(reason=""Using TDD, train_model() is not implemented")
+        def test_on_linear_data(self):
+            ...
+
+
+Expected Failures, But Conditionally:
+-------------------------------------
+Tests that are expected to fail
++ on certain Python versions.
++ on certain platforms like Windows.
+
+skipif: Skip Tests Conditionally  (shows s instead of . in pytest results)
+
+    import sys
+
+    class TestConvertToInt(object):
+        @pytest.mark.skipif(sys.version_info > (2, 7), reason='requires Python 2.7') # INCLUDES A REASON ARGUMENT IF WANTED
+        def test_with_no_comma(self):
+            """Only runs on Python 2.7 or lower"""
+            test_argument = "756"
+            expected = 756
+            actual = convert_to_int(test_argument)
+            message = unicode(f"Expected: 2081, Actual: ${actual}") # Requires Python 2.7 or lower
+            assert actual == expected, message
+
+
+Showing Reason In The Test Result Report:
+-----------------------------------------
+    pytest -r[set_of_characters]
+    eg. pytest -rs  pytest -rsx  pytest -x
+
+
+Skipping/Xfailing Entire Test Classes:
+--------------------------------------
+
+    @pytest.mark.xfail(reason""Using TDD, train_model() is not implemented")
+    class TestTrainModel(object):
+        ...
+
+    @pytest.mark.skipif(sys.version_info > (2, 7), reason="requires Python 2.7")
+    class TestConvertToInt(object):
+        ...
+
+
+Continuous Integration And Code Coverage:
+-----------------------------------------
+
+CI Server
+
+Step 1: Create a Configuration File:
+    repository root
+    |-- src
+    |-- tests
+    |-- .travis.yml
+
+contents of .travis.yml:
+    language: python
+    python:
+      - "3.6"
+    install:
+      - pip install -e .
+    script:
+      - pytest tests
+
+Step 2: Push the file to GitHub
+    git add .travis.yml
+    git push origin master
+
+Step 3: Install Travis CI app in the GitHub marketplace
+    From now on, whenever we push a commit, a build should appear on Travis CI dashboard and a "build" badge should
+    appear.
+
+Step 5: Show the Build Status Badge
+    Click the build badge on the Travis CI dash. Select markdown and paste result in readme.
+
+
+Code Coverage - The percentage of our application code that gets run when we run the test suite.
+
+    code coverage = (number of lines of app code ran during testing / total lines of app code) * 100
+    A higher percentage (> 75%) indicates well tested code.
+
+Step One: Modify the Travis CI configuration file:
+    language: python
+    python:
+      - "3.6"
+    install:
+      - pip install -e .
+      - pip install pytest-cov codecov  # Install packages for code coverage report
+    script:
+      - pytest --cov=src tests          # Note the difference in this line!
+    after_success:
+      - codecov                         # Uploads report to codecov.io
+
+Step Two: Install Codecov from GitHub Marketplace.
+
+Step Three: Go to the badges section of settings and copy the markdown.

@@ -1,0 +1,121 @@
+ /-------------------------\
+|    Unit Testing Basics    |
+ \-------------------------/
+
+Unit Testing Basics:
+--------------------
+====================
+
+In this chapter, you will get introduced to the pytest package and use it to write simple unit tests. You'll run the
+tests, interpret the test result reports and fix bugs. Throughout the chapter, we will use examples exclusively from
+the data preprocessing module of a linear regression project, making sure you learn unit testing in the context of
+data science.
+
+
+Life Cycle of a Function:
+-------------------------
+                                Implementation <-------------------------------------------
+                                       |                                                  |
+                                       V                                                  |
+                  -----------------> Test                                                 |
+                  |                    |                                                  |
+                  |      ------------------------------                                   |
+                  |      | FAIL                 PASS  |                                   |
+                  |      V                            V                                   |
+                  --- Bugfix              Accepted Implementation                         |
+                          ^                                 |                             |
+                          |                |----------------|--------------|              |
+                          |                V                               V              |
+                          |----------- Bug Found             Feature Request/Refactoring--|
+
+
+Data Format:
+------------
+
+housing_data.txt:
+area (sq. ft.)  price (dollars)
+2,081    314,942
+1,059    186,606
+    293,410
+1,148    206,186
+1,506    419,419
+1,210    214,114
+1,697    277,794
+1,268    194,345
+1,318    370,162
+1,463238,765
+1,468    239,007'
+
+To be used with a function that takes a row from the file and returns them separated:
+    def row_to_list(row):
+        ...
+
+Examples of Valid and Invalid Arguments for row_to_list():
+    Argument                Type        Return Value
+    "2,081\t314,942\n"      Valid       ["2,081", "314,942"]
+    "\t293,410\n"           Invalid     None
+    "1,463238,765\n"        Invalid     None
+
+Folder Structure Of A Unit Test Suite:
+    data/
+    src/
+    |--data/
+    |--features/
+    |--models/
+    |--visualization/
+    tests/
+    |--data/
+    |--features/
+    |--models/
+    |--visualization/
+
+
+Python Unit Testing Libraries:
+------------------------------
+- pytest
+- unittest
+- nosetests
+- doctest
+
+We use pytest because:
+- It has all essential features.
+- Easiest to use.
+- Most popular.
+
+
+STEPS FOR TESTING WITH PYTEST:
+------------------------------
+
+Step One: Create A File
+- Create test_row_to_list.py
+- test_ indicate unit tests inside (naming convention)
+- Also called test modules.
+
+Step Two: Imports
+- Test module: test_row_to_list.py
+
+    import pytest
+    import row_to_list
+
+Step Three: Unit Tests Are Python Functions
+
+    def test_for_clean_row():
+
+Step Four: Make An Assertion For Clean Data
+
+        assert row_to_list("2,081\t314,942\n") == ["2,081", "314,942"]
+
+Step Five: Make A Function/Assertion On Dirty Data
+
+    def test_for_missing_area():
+        assert row_to_list("\t293,410\n") is None
+
+    def test_for_missing_tab():
+        assert row_to_list("1,463238,765\n") is None
+
+Step Six: Running Unit Tests
+- From the command line:
+    pytest test_row_to_list.py
+
+
+What is a unit? A small, independent piece of code. In our case, it is a Python function or class.
