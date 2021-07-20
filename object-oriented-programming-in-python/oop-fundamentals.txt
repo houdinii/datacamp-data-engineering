@@ -1,0 +1,8 @@
+OOP Fundamentals
+================
+
+In this chapter, you'll learn what object-oriented programming (OOP) is, how it differs from procedural-programming,
+and how it can be applied. You'll then define your own classes, and learn how to create methods, attributes, and
+constructors.
+
+Procedural programming
