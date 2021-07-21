@@ -1,0 +1,201 @@
+Inheritance And Polymorphism
+============================
+Inheritance and polymorphism are the core concepts of OOP that enable efficient and consistent code reuse. Learn how to inherit from
+a class, customize and redefine methods, and review the differences between class-level data and instance-level data.
+
+Instance and Class Data:
+========================
+
+Core Principles of OOP:
++ Inheritance
+    - Extending functionality of existing code
++ Polymorphism
+    - Creating a unified interface
++ Encapsulation
+    - Bundling of data and methods
+
+
+Instance-Level Data:
+
+    class Employee:
+        def __init__(self, name, salary):
+            self.name = name
+            self.salary = salary
+
+    emp1 = Employee("Teo Mille", 50000)
+    emp2 = Employee("Marta Popov", 65000)
+
++ name, salary are instance attributes
++ self binds to an instance
+
+
+Class Level Data:
++ Data shared among ALL instances of a class
++ "Global variable" within a class
++ Define class attributes in the body of class
+
+    class MyClass:
+        # Define a class attribute
+        CLASS_ATTR_NAME = attr_value
+
+    class Employee:
+        MIN_SALARY = 30000
+        def __init__(self, name, salary):
+            self.name = name
+            self.salary = salary
+            if salary >= Employee.MIN_SALARY:
+                self.salary = salary
+            else:
+                self.salary = Employee.MIN_SALARY
+
++ MIN_SALARY is shared among all instances
++ DON'T USE self TO DEFINE CLASS ATTRIBUTES!
++ Use ClassName.ATTR_NAME to access the class attribute value.
+
+Why use class attribs?
+Global constants related to the class are:
++ minimal/maximal values for attributes
++ commonly used values and constants, eg pi for a Circle class
+
+Class Methods:
++ Methods are already "shared": same code for every instance
++ Class methods can't use instance-level data
++ Can be used to create objects
+    - Use return to return an object
+    - cls(...) will call __init__(...)
+
+    class MyClass:
+        @classmethod
+        def my_awesome_method(cls, args...) # cls refers to the class (where self refers to instance) (MyClass.my_awesome_method(args))
+            # Can't use any instance attributes (i.e. self.)
+
+Returning An Object:
+--------------------
+
+    @classmethod
+    def from_file(cls, filename):
+        with open(filename, "r") as f:
+            name = f.readline()
+        return cls(name)
+
+    calling:
+    emp = Employee.from_file("data.txt")
+    type(emp)
+    >>> __main__.Employee
+
+
+Class Inheritance
+=================
+Inheritance:
+    New Class Functionality = Old Class Functionality + Extra Functionality
+
+Implementation:
+
+Syntax:
++ MyParent: class whose functionality is being extended/inherited.
++ MyChild: class that will inherit the functionality and add more.
++ MyChild class has all the data from MyParent
++ Inheritance: "is-a" relationship
+    - A SavingsAccount IS A BankAccount (possibly with special features)
+    - isinstance(SavingsAccount(1000), BankAccount) >>> True
+    - isinstance(BankAccount(), SavingsAccount) >>> False
+
+    class MyChild(MyParent):
+        # Do stuff here
+
+
+Customer:
+
+    class BankAccount:
+        def __init__(self, balance):
+            self.balance = balance
+
+        def withdraw(self, amount):
+            self.balance -= amount
+
+    # Empty class inherited from BankAccount
+    class SavingsAccount(BankAccount):
+        pass
+
+
+Customizing Functionality of Inheritance
+========================================
+
+What we have so far:
+
+    class BankAccount:
+        def __init__(self, balance):
+            self.balance = balance
+
+        def withdraw(self, amount):
+            self.balance -= amount
+
+    # Empty class inherited from BankAccount
+    class SavingsAccount(BankAccount):
+        Pass
+
+
+Customizing Constructors:
++ Can run constructor of the parent class first by Parent.__init__(self, args...)
++ Add more functionality
++ Don't HAVE to call the parent constructors, but can.
+
+    class SavingsAccount(BankAccount):
+
+        # Constructor specifically for SavingsAccount with an additional parameter
+        def __init__(self, balance, interest_rate):
+            # Call the parent constructor using ClassName.__init__()
+            BankAccount.__init__(self, balance) # <--- self is a SavingsAccount but also a BankAccount
+            # Add more functionality
+            self.interest_rate = interest_rate
+
+        # New Functionality
+        def compute_interest(self, n_periods = 1):
+            return self.balance * ((1 + self.interest_rate) ** n_periods - 1)
+
+    # Construct object w/ new constructor
+    acct = SavingsAccount(1000, 0.03)
+    acct.interest_rate  # >>> 0.03
+
+
+What we have so far:
+
+    class BankAccount:
+        def __init__(self, balance):
+            self.balance = balance
+
+        def withdraw(self, amount):
+            self.balance -= amount
+
+    # Empty class inherited from BankAccount
+    class SavingsAccount(BankAccount):
+
+        # Constructor specifically for SavingsAccount with an additional parameter
+        def __init__(self, balance, interest_rate):
+            # Call the parent constructor using ClassName.__init__()
+            BankAccount.__init__(self, balance) # <--- self is a SavingsAccount but also a BankAccount
+            # Add more functionality
+            self.interest_rate = interest_rate
+
+        # New Functionality
+        def compute_interest(self, n_periods = 1):
+            return self.balance * ((1 + self.interest_rate) ** n_periods - 1)
+
+
+Customizing Functionality
++ Can change the signature (add parameters)
++ Use Parent.method(self, args...) to call a method from the parent class.
+
+    class CheckingAccount(BankAccount):
+        def __init__(self, balance, limit):
+            BankAccount.__init__(self, content)
+            self.limit = limit
+
+        def deposit(self, amount):
+            self.balance += amount
+
+        def withdraw(self, amount, fee=0):  # NOTE THE EXTRA FEE ARG
+            if fee <= self.limit:
+                BankAccount.withdraw(self, amount - fee)
+            else:
+                BankAccount.withdraw(self, amount - self.limit)

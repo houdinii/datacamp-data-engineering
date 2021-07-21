@@ -14,7 +14,7 @@ Flat Files:
 Loading other flat files:
 + Specify a different delimiter with sep (tax_data = pd.read_csv("us_taxes.tsv", sep="\t")
 
-Example loading tax data into a dataframe:
+Customer loading tax data into a dataframe:
 """
 
 import pandas as pd
@@ -31,7 +31,7 @@ Limiting columns:
 + Choose columns to load with the usecols keyword argument.
 + Accepts a list of column numbers or names, or a function to filter column names.
 
-Example:
+Customer:
 """
 
 col_names = ['STATEFIPS', 'STATE', 'zipcode', 'agi_stub', 'N1']

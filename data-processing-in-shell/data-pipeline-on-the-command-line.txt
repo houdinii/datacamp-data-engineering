@@ -87,7 +87,7 @@ Breaking down the time component for a cron job:
 | | | | |
 * * * * * command to be executed
 
-Example:
+Customer:
 * * * * * python create_model.py
 
 Interpretation:

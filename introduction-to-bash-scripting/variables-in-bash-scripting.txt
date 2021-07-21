@@ -244,7 +244,7 @@ You can either declare first, then add elements or do it all on one line.
    + You may add multiple elements at once.
 
 
-An Example:
+An Customer:
 -----------
     declare -A city_details                                # Declare first
     city_details=([city]="New York" [population]=14000000) # Add elements

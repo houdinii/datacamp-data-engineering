@@ -5,4 +5,156 @@ In this chapter, you'll learn what object-oriented programming (OOP) is, how it 
 and how it can be applied. You'll then define your own classes, and learn how to create methods, attributes, and
 constructors.
 
-Procedural programming
+Procedural programming:
++ Code as a sequence of steps
++ Great for data analysis
+
+Object Oriented Programming:
++ Code as interactions of objects
++ Great for building frameworks and tools
++ Maintainable and reusable code!
+
+Objects As Data Structures:
+    Object = State + Behavior
+
+Encapsulation - A core tenet of OOP, it means bundling data with code operating on it. Black box functionality.
+
+Classes As Blueprints
++ Class - Blueprint for objects outlining possible states and behaviors.
+    + Customer Class:
+        - email
+        - phone
+        ---------
+        - place order ()
+        - cancel order ()
+
+Objects in Python:
++ Everything in Python is an object
++ Every object has a class
++ Use type() to find the class
+
+    import numpy as np
+    a = np.array([1,2,3,4])
+    print(type(a))
+    >>> numpy.ndarray
+|---------------|-------------|
+| Object        | Class       |
+|---------------|-------------|
+|5              | int         |
+|"Hello"        | str         |
+|pd.DataFrame() | DataFrame   |
+|np.mean        | function    |
+|...            | ...         |
+|---------------|-------------|
+
+
+Attributes And Methods:
+-----------------------
+State <==> Attributes:
+    import numpy as np
+    a = np.array([1,2,3,4])
+    # shape attribute
+    a.shape
+    >>> (4,)
+
+Behavior <==> Methods:
+    import numpy as np
+    a = np.array([1,2,3,4])
+    # reshape method
+    a.reshape(2,2)
+    >>> ([[1, 2],
+          [3, 4]])
+
+To List All Attributes And Methods:
+-----------------------------------
++ attribute <==> variables <==> obj.my_attribute
++ method <==> function() <==> obj.my_method()
+
+    import numpy as np
+    a = np.array([1,2,3,4])
+    dir(a)
+
+    >>> ['T',
+         '__abs__',
+         ...
+         'trace',
+         'transpose',
+         'var',
+         'view']
+
+
+Class Anatomy: Attributes and Methods:
+--------------------------------------
+
+A Basic Class:
+
+    class Customer:                     #  class <name>: Starts a class definition
+        # code for class goes here      #  code inside class is indented
+        pass                            #  use pass to create an 'empty' class
+                                        #
+    c1 = Customer()                     #  use ClassName() to create an object of class ClassName
+    c2 = Customer()                     #  use ClassName() to create another object of class ClassName
+
+
+Add Methods To A Class:
+
+    class Customer:                         #
+                                            # method definition = function definition within class
+        def identity(self, name):           # use self as the 1st arg in method definitions
+            print("I am Customer" + name)   #
+                                            #
+    cust = Customer()                       # ignore self when calling method on an object
+    cust.identity("Laura")                  #
+
+What is Self?
++ Classes are templates, how to refer data of a particular object?
++ self is a stand-in for a particular object used in class definition
++ Should be the first argument of any class method.
++ Python will take care of self when methodcallded from an object:
+    + cust.identity("Laura") will be interpreted as Customer.identity(cust, "Laura")
+
+We Need Attributes:
++ Encapsulation
++ E.g. Customer's name should be an attribute:
++ Attributes are created by assignment (=) in methods
+
+Add an attribute to a class:
+
+    class Customer:
+        # set the name attribute of an object to new_name
+        def set_name(self, new_name):
+            # Create an attribute by assigining a value
+            self.name = new_name
+
+    cust = Customer()
+    cust.set_name("Lara de Silva")
+    print(cust.name)
+
+
+Class Anatomy: The __init__ Constructor:
+========================================
+
+Constructor:
++ Add data to object when creating it
++ Constructor __init__() method is called every time an object is created.
+
+    class Customer:
+        def __init__(self, name):
+            self.name = name
+            print("The __init__ method was called")
+
+    cust = Customer("Lara e Silva")
+    print(cust.name)
+
+    >>> The __init__ method was called
+    >>> Lara e Silva
+
+Best Practices:
+1. Initialize attributes in __init__()
+2. Use CamelCase naming for classes, lower_snake_case for functions and attributes.
+3. self is self
+4. Use docstrings:
+
+    class MyClass:
+        """This class does nothing"""
+        pass

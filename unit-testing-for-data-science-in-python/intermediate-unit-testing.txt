@@ -7,13 +7,13 @@
 Mastering The Assert Statement:
 - Syntax:
     assert boolean_expression, message
-- Example:
+- Customer:
     assert 1 == 2, "One is not equal to two!"
 - Output:
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
     AssertionError: One is not equal to two!
-- Another Example:
+- Another Customer:
     assert 2 == 2, "This will not be printed since assertion passes"
 - Output:
 
@@ -73,7 +73,7 @@ This function expects the argument array to have rows and columns, that is, the 
 Otherwise, splitting by rows is undefined. So if we pass a one dimensional array to this function, it should not return
 anything, but rather raise a ValueError, which is a specific type of exception.
 
-Exception Example:
+Exception Customer:
 ------------------
 
     import numpy as np
@@ -121,7 +121,7 @@ A well tested function tests for these argument types:
 Type I: Bad Arguments (Array With Only One Row):
 + When passed bad arguments, function raises an exception.
 
-Example: np.array([[845.0, 31036.0]])
+Customer: np.array([[845.0, 31036.0]])
 
 Type II: Special Arguments
 + Boundary Values.

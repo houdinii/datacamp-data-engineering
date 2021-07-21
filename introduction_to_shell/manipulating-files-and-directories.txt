@@ -35,7 +35,7 @@ Commands:
 + cut - Remove sections from each line of files (select colomns from a file instead of row like head/tail)
     + -f X-y  Fields, i.e. columns, to select
     + -d ,    Delimeter, comma in this case
-    + Example: cut -f 2-5,8 -d , values.csv
+    + Customer: cut -f 2-5,8 -d , values.csv
 
 + history - Prints a list of commands you have run recently. Typing !55 will re-run command 55, !head will run the last head
   command ran.
@@ -87,7 +87,7 @@ USER        User's ID                       repl
 
 + echo - Echos to screen. To echo a variable: echo $VARNAME
 
-+ for loops - Example: for filetype in gif jpg png; do echo $filetype; done
++ for loops - Customer: for filetype in gif jpg png; do echo $filetype; done
 
 Nano:
 nano filename - edits filename in nano editor. Some hotkeys:

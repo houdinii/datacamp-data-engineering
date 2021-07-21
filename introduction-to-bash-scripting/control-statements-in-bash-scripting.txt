@@ -212,7 +212,7 @@ Iterations continue until this is no longer met!
   infinite loop!)
 
 
-WHILE Statement Example:
+WHILE Statement Customer:
 ------------------------
 Here is a simple example:
     x-1

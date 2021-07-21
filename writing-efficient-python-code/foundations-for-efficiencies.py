@@ -72,7 +72,7 @@ def built_in_practice_range():
 
             range(stop)
 
-            # Example
+            # Customer
             list(range(11))
 
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -82,7 +82,7 @@ def built_in_practice_range():
 
             range(start, stop, step)
 
-            # Example
+            # Customer
             list(range(2,11,2))
 
             [2, 4, 6, 8, 10]

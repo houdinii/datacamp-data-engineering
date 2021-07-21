@@ -23,7 +23,7 @@ For a full list of options:
     curl --help
 
 Downloading a Single File:
-Example:
+Customer:
 
 A single file is stored at:
     https://websitename.com/datafilename.txt
@@ -96,7 +96,7 @@ Option flags unique to Wget:
     + -b: Go to background immediately after startup
     + -q: Turn off the Wget output (Quiet Mode)
     + -c: Resume broken download (i.e. continue getting a partially-downloaded file.)
-    + Example: wget -bqc https://websitename.com/datafilename.txt
+    + Customer: wget -bqc https://websitename.com/datafilename.txt
         + Output: Continuing in background, pid 12345.
 
 
@@ -119,14 +119,14 @@ Setting download constraints for large files:
 Set upper download bandwidth limit (by default in bytes per second) with --limit-rate.
 Syntax:
     wget --limit-rate={rate}k {file_location}
-Example:
+Customer:
     wget --limit-rate=200k -i url_list.txt
 
 Setting download constraints for small files:
 Set a mandatory pause time (in seconds_ between file downloads with wait.
 Syntax:
     wget --wait={seconds} {file_location}
-Example:
+Customer:
     wget --wait=2.5 -i url_list.txt
 
 curl versus Wget:

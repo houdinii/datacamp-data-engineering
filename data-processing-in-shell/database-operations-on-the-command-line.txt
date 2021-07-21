@@ -17,7 +17,7 @@ Documentation:
 Syntax:
     sql2csv --db "connection_string" -- query "SQL QUERY HERE" > output.csv
 
-Example:
+Customer:
     sql2csv --db "sqlite:///SpotifyDatabase.db" --query "SELECT * FROM Spotify_Popularity" > Spotify_Popularity.csv
 
 Step By Step:

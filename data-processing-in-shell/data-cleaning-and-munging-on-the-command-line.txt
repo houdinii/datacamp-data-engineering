@@ -112,7 +112,7 @@ csvgrep:
 Documentation:
     csvgrep -h
 
-Example:
+Customer:
 Find in Spotify_Popularity.csv where track_id = asdfea561aef516afa6sdfe
 
 By Column Name:
@@ -141,7 +141,7 @@ Syntax:
     -g GROUPS - comma sepparated list to use as grouping factors (label for each file)
     -n GROUP_NAME - A name for the grouping column
 
-Example:
+Customer:
     csvstack -g "Rank6", "Rank7" Spotify_Rank6.csv Spotify_Rank7.csv > Spotify_AllRanks.csv
 
 
@@ -158,7 +158,7 @@ Chaining Command-Line Commands:
      in2csv SpotifyData.xlsx > SpotifyData.csv
 
 |  - uses the output of the 1st command as input to the 2nd
-        Example: Output of the 1st command as input to the 2nd
+        Customer: Output of the 1st command as input to the 2nd
             csvcut -c "track_id","danceability" Spotify_MusicAttributes.csv
 
         A Better Way: Re-format csvcut's output by piping the output as input to csvlook:

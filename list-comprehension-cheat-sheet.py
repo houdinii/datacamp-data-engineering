@@ -19,7 +19,7 @@ l1 = ["a", "b"]
 l2 = [1, 2]
 print([i + str(j) for i in l1 for j in l2])
 
-# Example: Get the email addresses from a list of domains
+# Customer: Get the email addresses from a list of domains
 l1 = ["billy@gmail.com", "george@hotmail.com", "www.billy.com", "python.com", "mike@predictivehacks.com"]
 domains = ['gmail.com', "hotmail.com"]
 

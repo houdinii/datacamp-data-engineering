@@ -199,7 +199,7 @@ def a_decorator_factory():
 
 
 """
-Timeout(): A Real World Example
+Timeout(): A Real World Customer
 
 Suppose we have some functions that run for a long time or hangs and doesn't return.
 

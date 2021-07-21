@@ -87,7 +87,7 @@ You also have access to the special ARGV properties we previously covered:
 + $# gives the length (number) of arguments.
 
 
-Passing Arguments Example:
+Passing Arguments Customer:
 --------------------------
 Let's pass some file names as arguments into a function to demonstrate. We will loop through them and print them out.
     function print_filename {
@@ -235,7 +235,7 @@ How you construct a cronjob inside the crontab file. You can have many cronjobs,
 * * * * * command to be executed
 
 
-Cronjob Example:
+Cronjob Customer:
 ----------------
 Let's walk through some examples:
 
